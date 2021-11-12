@@ -1,14 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'scollection-header',
-  templateUrl: './header.component.html',
+    selector: 'scollection-header',
+    templateUrl: './header.component.html'
 })
 export class HeaderComponent implements OnInit {
+    constructor() {}
 
-  constructor() { }
-
-  ngOnInit(): void {
-  }
-
+    ngOnInit(): void {
+        //console.log('header called only one time');
+    }
 }

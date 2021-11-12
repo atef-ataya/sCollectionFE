@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { UsersService } from '@bluebits/users';
 import { User } from '@bluebits/users';
 import * as countriesLib from 'i18n-iso-countries';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 declare const require: (arg0: string) => countriesLib.LocaleData;
 
@@ -12,9 +14,10 @@ declare const require: (arg0: string) => countriesLib.LocaleData;
     templateUrl: './users-list.component.html',
     styles: []
 })
-export class UsersListComponent implements OnInit {
+export class UsersListComponent implements OnInit, OnDestroy {
     users: User[] = [];
     countryName?: string;
+    endsubs$: Subject<any> = new Subject();
 
     constructor(
         private usersService: UsersService,
@@ -27,21 +30,28 @@ export class UsersListComponent implements OnInit {
         this._getUsers();
     }
 
+    ngOnDestroy() {
+        this.endsubs$.next();
+        this.endsubs$.complete();
+    }
     deleteUser(userId: string) {
         this.confirmationService.confirm({
             message: 'Do you want to delete this User?',
             header: 'Delete User',
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
-                this.usersService.deleteUser(userId).subscribe(
-                    () => {
-                        this._getUsers();
-                        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'User is Deleted!' });
-                    },
-                    () => {
-                        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'User is Not deleted.' });
-                    }
-                );
+                this.usersService
+                    .deleteUser(userId)
+                    .pipe(takeUntil(this.endsubs$))
+                    .subscribe(
+                        () => {
+                            this._getUsers();
+                            this.messageService.add({ severity: 'success', summary: 'Success', detail: 'User is Deleted!' });
+                        },
+                        () => {
+                            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'User is Not deleted.' });
+                        }
+                    );
             }
         });
     }

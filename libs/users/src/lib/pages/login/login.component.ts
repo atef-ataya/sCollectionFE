@@ -1,7 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { LocalstorageService } from '../../services/localstorage.service';
 
 @Component({
     selector: 'users-login',
@@ -14,7 +16,12 @@ export class LoginComponent implements OnInit {
     authError = false;
     authMessage = 'Email or Password is worng';
 
-    constructor(private formBuilder: FormBuilder, private auth: AuthService) {}
+    constructor(
+      private formBuilder: FormBuilder, 
+      private auth: AuthService, 
+      private localStorage: LocalstorageService, 
+      private router: Router,
+      ) {}
 
     ngOnInit(): void {
         this._initLoginForm();
@@ -40,6 +47,8 @@ export class LoginComponent implements OnInit {
         this.auth.login(loginData.email, loginData.password).subscribe(
             (user) => {
                 this.authError = false;
+                this.localStorage.setToken(user.token);
+                this.router.navigate(['/']);
             },
             (error: HttpErrorResponse) => {
                 this.authError = true;
